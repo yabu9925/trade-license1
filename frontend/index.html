@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade License Portal</title>
+    <meta name="description" content="Official Government Trade License Application Portal">
+    <link rel="stylesheet" href="app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ─── AUTH OVERLAY ─── -->
+<div id="auth-overlay" class="overlay">
+    <div class="glass-bright auth-card">
+        <div class="auth-logo">TradePortal</div>
+        <p class="auth-subtitle">Official Government Licensing System</p>
+
+        <div class="auth-tab-bar">
+            <button class="auth-tab active" data-auth="login">Sign In</button>
+            <button class="auth-tab" data-auth="register">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form active">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="login_email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login_password" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+                <label>Account Role</label>
+                <select id="login_role" required>
+                    <option value="Applicant">Applicant</option>
+                    <option value="Reviewer">Reviewer</option>
+                    <option value="Approver">Approver</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; padding: 13px;">Sign In →</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="reg_name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="reg_email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" id="reg_phone" placeholder="+1 234 567 8900" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg_password" placeholder="Min 6 chars" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm</label>
+                    <input type="password" id="reg_password_confirm" placeholder="Repeat" required minlength="6">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Account Role</label>
+                <select id="reg_role" required>
+                    <option value="Applicant">Applicant</option>
+                    <option value="Reviewer">Reviewer</option>
+                    <option value="Approver">Approver</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; padding: 13px;">Create Account →</button>
+        </form>
+    </div>
+</div>
+
+<!-- ─── MAIN APPLICATION ─── -->
+<div id="main-app" class="app-layout" style="display:none;">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">⚖ TradePortal</div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-tab active" data-view="applicant" id="nav-applicant">
+                <span class="nav-icon">📝</span> Application
+            </button>
+            <button class="nav-tab" data-view="reviewer" id="nav-reviewer">
+                <span class="nav-icon">🔍</span> Review Queue
+            </button>
+            <button class="nav-tab" data-view="approver" id="nav-approver">
+                <span class="nav-icon">⚖️</span> Approval Queue
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-chip">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div>
+                    <div class="user-info-name" id="current-user-name">Loading...</div>
+                    <div class="user-info-role" id="current-role">Role</div>
+                </div>
+            </div>
+            <button id="logout-btn" class="btn btn-ghost danger" style="width:100%; font-size: 0.85rem;">
+                🚪 Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <h2 id="view-title">Application Portal</h2>
+            <div class="topbar-right">
+                <div class="live-dot">
+                    <span class="dot-pulse"></span> Live
+                </div>
+                <div class="notif-btn" id="notification-bell">
+                    🔔
+                    <span class="notif-badge" id="notif-count"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notification Panel -->
+        <div class="glass-bright notif-panel" id="notification-panel">
+            <h4>🔔 Notifications</h4>
+            <div id="notif-list"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-area">
+
+            <!-- ── APPLICANT VIEW ── -->
+            <section id="applicant-view" class="view-section active">
+                <div class="grid-2">
+
+                    <!-- Application Form -->
+                    <div class="glass card">
+                        <h3 class="card-title"><span class="icon">📋</span> New License Request</h3>
+                        <form id="submit-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Business Name</label>
+                                    <input type="text" id="biz_name" placeholder="Acme Corp" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Business Type</label>
+                                    <input type="text" id="biz_type" placeholder="e.g. Software, Retail, Cafe..." required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Business Address</label>
+                                <input type="text" id="biz_address" placeholder="123 Trade Center, City" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Starting Capital ($)</label>
+                                    <input type="number" id="biz_capital" value="10000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Payment Amount ($)</label>
+                                    <input type="number" id="payment_amount" value="500" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Activity Description</label>
+                                <textarea id="biz_desc" rows="3" placeholder="Describe your business activities..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>📷 Applicant Photo (.jpg/.png)</label>
+                                <input type="file" id="doc_photo" accept=".jpg,.jpeg,.png" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>🪪 National ID / Passport</label>
+                                    <input type="file" id="doc_id" accept=".pdf,.jpg,.png" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>📃 Lease Agreement</label>
+                                    <input type="file" id="doc_lease" accept=".pdf,.jpg,.png" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px; padding: 13px;">
+                                🚀 Submit Application
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Application History -->
+                    <div class="glass card">
+                        <h3 class="card-title"><span class="icon">📂</span> My Applications</h3>
+                        <div class="table-wrap">
+                            <table id="my-apps-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Business</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── REVIEWER VIEW ── -->
+            <section id="reviewer-view" class="view-section">
+                <div class="glass card">
+                    <h3 class="card-title"><span class="icon">🔍</span> Applications Pending Review</h3>
+                    <div class="table-wrap">
+                        <table id="reviewer-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Applicant</th>
+                                    <th>Business Type</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── APPROVER VIEW ── -->
+            <section id="approver-view" class="view-section">
+                <div class="glass card">
+                    <h3 class="card-title"><span class="icon">⚖️</span> Approval Queue</h3>
+                    <div class="table-wrap">
+                        <table id="approver-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Applicant</th>
+                                    <th>Business Type</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</div>
+
+<!-- ─── DETAILS MODAL ─── -->
+<div id="details-modal" class="modal">
+    <div class="glass-bright modal-inner">
+        <div class="modal-header">
+            <h3 id="modal-title">Application Details</h3>
+            <button class="modal-close" id="close-modal">✕</button>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+        <div id="modal-actions" class="modal-actions"></div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
