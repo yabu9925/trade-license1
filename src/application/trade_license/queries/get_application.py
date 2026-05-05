@@ -55,6 +55,11 @@ def _to_summary_dto(app: TradeLicenseApplication) -> ApplicationSummaryDto:
         applicant_id=app.applicant_id,
         status=app.status,
         business_type=app.business_details.type,
+        payment=PaymentDto(
+            transaction_id=app.payment.transaction_id,
+            amount=app.payment.amount,
+            is_settled=app.payment.is_settled,
+        ) if app.payment else None,
     )
 
 

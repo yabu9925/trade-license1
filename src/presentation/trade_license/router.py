@@ -186,6 +186,8 @@ def list_applications(
             applicant_id=r.applicant_id,
             status=r.status.value,
             business_type=r.business_type,
+            payment_transaction_id=r.payment.transaction_id if r.payment else None,
+            payment_amount=r.payment.amount if r.payment else None,
         )
         for r in results
     ]

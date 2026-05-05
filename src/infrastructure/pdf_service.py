@@ -1,6 +1,14 @@
 from fpdf import FPDF
 from src.domain.trade_license.aggregate import TradeLicenseApplication
 import os
+from datetime import date, timedelta
+
+def sanitize_text(text: str) -> str:
+    """Remove characters outside Latin-1 range that Helvetica cannot render."""
+    if not text:
+        return ""
+    return ''.join(c if ord(c) < 256 else '?' for c in str(text))
+
 
 class PDFService:
     def generate_license_pdf(self, app: TradeLicenseApplication) -> bytes:
@@ -53,14 +61,20 @@ class PDFService:
             pdf.set_font("Helvetica", "B", 11)
             pdf.cell(50, 8, f"{label}:", 0)
             pdf.set_font("Helvetica", "", 11)
-            pdf.cell(0, 8, str(value), 0, 1)
+            pdf.cell(0, 8, sanitize_text(str(value)), 0, 1)
+
+        issue_date = date.today()
+        expiry_date = issue_date.replace(year=issue_date.year + 1)
+        issue_str  = issue_date.strftime("%B %d, %Y").upper()
+        expiry_str = expiry_date.strftime("%B %d, %Y").upper()
 
         add_field("ENTITY NAME", app.business_details.name)
         add_field("BUSINESS TYPE", app.business_details.type)
         add_field("LOCATION", app.business_details.address)
         add_field("HOLDER ID", app.applicant_id)
         add_field("STATUS", "AUTHORIZED & ACTIVE")
-        add_field("ISSUE DATE", "MAY 01, 2026")
+        add_field("ISSUE DATE", issue_str)
+        add_field("EXPIRY DATE", expiry_str)
         
         pdf.ln(10)
         
@@ -70,7 +84,7 @@ class PDFService:
         pdf.cell(0, 10, "AUTHORIZED BUSINESS ACTIVITIES:", ln=True)
         pdf.set_x(15)
         pdf.set_font("Helvetica", "", 10)
-        pdf.multi_cell(130, 6, app.business_details.activity_description)
+        pdf.multi_cell(130, 6, sanitize_text(app.business_details.activity_description))
         
         # --- FOOTER & STAMP ---
         stamp_path = "frontend/stamp.png"

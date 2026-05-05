@@ -93,3 +93,5 @@ class ApplicationSummaryResponse(BaseModel):
     applicant_id: str
     status: str
     business_type: str
+    payment_transaction_id: Optional[str] = None
+    payment_amount: Optional[float] = None

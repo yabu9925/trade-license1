@@ -54,3 +54,4 @@ class ApplicationSummaryDto:
     applicant_id: str
     status: ApplicationStatus
     business_type: str
+    payment: Optional[PaymentDto] = None

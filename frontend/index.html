@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade License Portal</title>
     <meta name="description" content="Official Government Trade License Application Portal">
-    <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="app.css?v=20260505">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -170,6 +170,22 @@
                                     <input type="number" id="payment_amount" value="500" required>
                                 </div>
                             </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Payment Method</label>
+                                    <select id="payment_method" required>
+                                        <option value="Telebirr">Telebirr</option>
+                                        <option value="CBE">Commercial Bank of Ethiopia (CBE)</option>
+                                        <option value="Awash">Awash Bank</option>
+                                        <option value="Dashen">Dashen Bank</option>
+                                        <option value="BOA">Bank of Abyssinia</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Transaction ID</label>
+                                    <input type="text" id="payment_txn_id" placeholder="e.g. FT2305..." required>
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label>Activity Description</label>
                                 <textarea id="biz_desc" rows="3" placeholder="Describe your business activities..." required></textarea>
@@ -225,6 +241,8 @@
                                     <th>ID</th>
                                     <th>Applicant</th>
                                     <th>Business Type</th>
+                                    <th>Payment Method</th>
+                                    <th>Transaction ID</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -272,6 +290,6 @@
     </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=20260505"></script>
 </body>
 </html>

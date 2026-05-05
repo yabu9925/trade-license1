@@ -286,7 +286,7 @@ submitForm.addEventListener('submit', async (e) => {
                 { file_name: idDoc.file_name,   storage_uri: idDoc.storage_uri },
                 { file_name: leaseDoc.file_name, storage_uri: leaseDoc.storage_uri }
             ],
-            payment_transaction_id: `txn-${Math.floor(Math.random() * 100000)}`,
+            payment_transaction_id: `${document.getElementById('payment_method').value}-${document.getElementById('payment_txn_id').value}`,
             payment_amount: parseFloat(document.getElementById('payment_amount').value)
         };
 
@@ -363,18 +363,25 @@ function renderApplicantTable(data) {
 function renderReviewerTable(data) {
     const list = data.filter(a => ['Pending', 'Rereview'].includes(a.status));
     if (!list.length) {
-        reviewerTable.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px;">Queue is empty. All caught up! ✅</td></tr>`;
+        reviewerTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Queue is empty. All caught up! ✅</td></tr>`;
         return;
     }
-    reviewerTable.innerHTML = list.map(app => `
+    reviewerTable.innerHTML = list.map(app => {
+        const txnRaw  = app.payment_transaction_id || '';
+        const txnParts = txnRaw.split('-');
+        const payMethod = txnParts.length > 1 ? txnParts[0] : '—';
+        const payTxnId  = txnParts.length > 1 ? txnParts.slice(1).join('-') : txnRaw;
+        return `
         <tr>
             <td style="font-family:monospace;font-size:0.8rem;">…${app.id.slice(-8)}</td>
             <td style="font-family:monospace;font-size:0.8rem;">…${app.applicant_id.slice(-8)}</td>
             <td>${app.business_type}</td>
+            <td><span style="color:var(--primary-light);font-weight:600;">📲 ${payMethod}</span></td>
+            <td><code style="font-size:0.78rem;background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:4px;">${payTxnId || '—'}</code></td>
             <td>${getBadge(app.status)}</td>
             <td>${actionBtn('Review', `viewDetails('${app.id}')`)}</td>
-        </tr>
-    `).join('');
+        </tr>`;
+    }).join('');
 }
 
 function renderApproverTable(data) {
@@ -416,6 +423,20 @@ async function viewDetails(id) {
             `).join('')
             : `<p style="color:var(--text-muted);font-size:0.85rem;">No documents uploaded.</p>`;
 
+        // Parse payment method and transaction ID from combined string (e.g. "Telebirr-FT89234")
+        const txnRaw = app.payment ? app.payment.transaction_id : '';
+        const txnParts = txnRaw ? txnRaw.split('-') : [];
+        const payMethod = txnParts.length > 1 ? txnParts[0] : '—';
+        const payTxnId  = txnParts.length > 1 ? txnParts.slice(1).join('-') : txnRaw;
+
+        // Reviewer info block (shown to approver)
+        const reviewerBlock = app.reviewer_id ? `
+            <div class="modal-divider"></div>
+            <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Reviewer Decision</div>
+            ${detailRow('Reviewed By (ID)', `<code style="font-size:0.78rem;">…${app.reviewer_id.slice(-10)}</code>`)}
+            ${app.review_note ? detailRow('Reviewer Note', app.review_note) : ''}
+        ` : '';
+
         modalBody.innerHTML = `
             ${detailRow('Application ID', `<code style="font-size:0.78rem;">${app.id}</code>`)}
             ${detailRow('Status', getBadge(app.status))}
@@ -426,21 +447,50 @@ async function viewDetails(id) {
             ${detailRow('Capital', `$${app.business_details.capital.toLocaleString()}`)}
             ${detailRow('Activities', app.business_details.activity_description)}
             <div class="modal-divider"></div>
-            ${detailRow('Payment', `$${app.payment.amount} — ${app.payment.is_settled ? '✅ Settled' : '⏳ Pending'}`)}
+            <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">💳 Payment Information</div>
+            ${detailRow('Payment Method', `<span style="font-weight:600;color:var(--primary-light);">📲 ${payMethod}</span>`)}
+            ${detailRow('Transaction ID', `<code style="font-size:0.82rem;background:rgba(255,255,255,0.07);padding:2px 8px;border-radius:5px;">${payTxnId || '—'}</code>`)}
+            ${detailRow('Amount', `$${app.payment.amount} — ${app.payment.is_settled ? '✅ Settled' : '⏳ Pending'}`)}
             <div class="modal-divider"></div>
             <div style="margin-bottom:4px;font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;">Documents</div>
             <div style="display:flex;flex-direction:column;gap:8px;">${docsHtml}</div>
-            ${app.review_note   ? `<div class="modal-divider"></div>${detailRow('Review Note',   app.review_note)}` : ''}
-            ${app.approval_note ? `${detailRow('Approval Note', app.approval_note)}` : ''}
+            ${reviewerBlock}
+            ${app.approval_note ? `<div class="modal-divider"></div>${detailRow('Approval Note', app.approval_note)}` : ''}
         `;
+
 
         modalActions.innerHTML = '';
 
         if (currentRole === 'reviewer' && ['Pending', 'Rereview'].includes(app.status)) {
             modalActions.innerHTML = `
-                ${actionBtn('Request Adjustment', "submitReview('Adjust')", 'warning')}
-                ${actionBtn('Reject', "submitReview('Reject')", 'danger')}
-                ${actionBtn('✓ Accept', "submitReview('Accept')", 'success')}
+                <div style="
+                    width:100%;
+                    background:rgba(99,102,241,0.08);
+                    border:1px solid rgba(99,102,241,0.25);
+                    border-radius:10px;
+                    padding:12px 16px;
+                    margin-bottom:12px;
+                    display:flex;
+                    align-items:center;
+                    gap:12px;
+                ">
+                    <input type="checkbox" id="payment-verified-chk" onchange="toggleAcceptBtn()"
+                        style="width:18px;height:18px;cursor:pointer;accent-color:var(--success);">
+                    <label for="payment-verified-chk" style="cursor:pointer;font-size:0.88rem;font-weight:500;">
+                        💳 I have verified the payment —
+                        <strong style="color:var(--primary-light);">${payMethod}</strong>
+                        / TXN: <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">${payTxnId || '—'}</code>
+                    </label>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    ${actionBtn('Request Adjustment', "submitReview('Adjust')", 'warning')}
+                    ${actionBtn('Reject', "submitReview('Reject')", 'danger')}
+                    <button id="accept-btn" class="btn btn-success"
+                        style="padding:6px 14px;font-size:0.8rem;opacity:0.4;cursor:not-allowed;"
+                        onclick="submitReview('Accept')" disabled>
+                        ✓ Accept (Paid)
+                    </button>
+                </div>
             `;
         } else if (currentRole === 'approver' && app.status === 'Accepted') {
             modalActions.innerHTML = `
@@ -666,6 +716,25 @@ function showToast(message, type = 'primary') {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3500);
+}
+
+// ══════════════════════════════════════════
+// PAYMENT VERIFICATION TOGGLE
+// ══════════════════════════════════════════
+
+function toggleAcceptBtn() {
+    const chk = document.getElementById('payment-verified-chk');
+    const btn = document.getElementById('accept-btn');
+    if (!chk || !btn) return;
+    if (chk.checked) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
+    }
 }
 
 // ══════════════════════════════════════════
